@@ -1,19 +1,34 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Transaction, TransactionType } from '@/lib/types';
 import { sampleCategories } from '@/lib/sampleData';
 import { Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { createTransactionAction } from '@/app/dashboard/actions';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Button } from './ui/button';
+import { Label } from './ui/label';
 
 interface TransactionFormProps {
-  onSubmit: (transaction: Omit<Transaction, 'id'>) => void;
-  onCancel: () => void;
   editTransaction?: Transaction;
+  setOpen: (open: boolean) => void;
+  open: boolean;
+  onSubmitComplete?: () => void;
 }
 
 const TransactionForm: React.FC<TransactionFormProps> = ({
-  onSubmit,
-  onCancel,
-  editTransaction
+  setOpen,
+  open,
+  editTransaction,
+  onSubmitComplete,
 }) => {
   const { toast } = useToast();
   const [type, setType] = useState<TransactionType>('expense');
@@ -35,7 +50,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     }
   }, [editTransaction]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!concept.trim()) {
@@ -65,146 +80,184 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       categoryId: categoryId || undefined,
     };
 
-    onSubmit(transaction);
-
-    // Reset form
-    if (!editTransaction) {
-      setType('expense');
-      setConcept('');
-      setDescription('');
-      setAmount('');
-      setCategoryId(undefined);
-      setDate(new Date().toISOString().split('T')[0]);
+    const { error } = await createTransactionAction(transaction);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo guardar la transacción",
+        variant: "destructive",
+      });
+      return;
     }
+
+    if (!editTransaction) {
+      resetForm();
+    }
+
+    if (onSubmitComplete) {
+      onSubmitComplete();
+    }
+
+    toast({
+      title: "Éxito",
+      description: editTransaction ? "Transacción actualizada" : "Transacción añadida",
+    });
+
+    setOpen(false);
+  };
+
+  const resetForm = () => {
+    setType('expense');
+    setConcept('');
+    setDescription('');
+    setAmount('');
+    setCategoryId(undefined);
+    setDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const handleCancel = () => {
+    setOpen(false);
   };
 
   return (
-    <div className="neobrutalism-card p-5">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">
-          {editTransaction ? 'Editar transacción' : 'Nueva transacción'}
-        </h2>
-        <button
-          onClick={onCancel}
-          className="neobrutalism-button p-1"
-        >
-          <X size={20} />
-        </button>
-      </div>
+    <Dialog >
+      <DialogTrigger asChild>
+        <Button onClick={() => setOpen(true)}>
+          <Plus size={18} className="mr-1 inline-block" />
+          Nueva
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="p-5 sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-bold">
+            {editTransaction ? 'Editar transacción' : 'Nueva transacción'}
+          </DialogTitle>
+        </DialogHeader>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <div className="flex gap-2 mb-4">
-            <button
-              type="button"
-              className={`neobrutalism-button flex-1 ${type === 'expense' ? 'bg-black text-white' : ''}`}
-              onClick={() => setType('expense')}
-            >
-              Gasto
-            </button>
-            <button
-              type="button"
-              className={`neobrutalism-button flex-1 ${type === 'income' ? 'bg-black text-white' : ''}`}
-              onClick={() => setType('income')}
-            >
-              Ingreso
-            </button>
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+          <input type="hidden" name="type" value={type} />
 
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Concepto</label>
-              <input
-                type="text"
-                value={concept}
-                onChange={(e) => setConcept(e.target.value)}
-                placeholder="Ej. Salario mensual"
-                className="neobrutalism-input w-full"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Descripción (opcional)</label>
-              <input
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ej. Pago de la empresa XYZ"
-                className="neobrutalism-input w-full"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Monto (COP)</label>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="Ej. 1500000"
-                className="neobrutalism-input w-full"
-                min="0"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Fecha</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="neobrutalism-input w-full"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Categoría (opcional)</label>
-              <select
-                value={categoryId || ''}
-                onChange={(e) => setCategoryId(e.target.value || undefined)}
-                className="neobrutalism-selector w-full p-2"
+          <div>
+            <div className="flex gap-2 mb-4">
+              <button
+                type="button"
+                className={`neobrutalism-button flex-1 ${type === 'expense' ? 'bg-black text-white' : ''}`}
+                onClick={() => setType('expense')}
               >
-                <option value="">Sin categoría</option>
-                {sampleCategories
-                  .filter(cat =>
-                    // Filter categories based on transaction type
-                    type === 'income'
-                      ? cat.name.includes('Salario') || cat.name.includes('ingreso')
-                      : !cat.name.includes('Salario') && !cat.name.includes('ingreso')
-                  )
-                  .map(category => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))
-                }
-              </select>
+                Gasto
+              </button>
+              <button
+                type="button"
+                className={`neobrutalism-button flex-1 ${type === 'income' ? 'bg-black text-white' : ''}`}
+                onClick={() => setType('income')}
+              >
+                Ingreso
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="concept" className="block text-sm font-medium mb-1">Concepto</Label>
+                <input
+                  id="concept"
+                  name="concept"
+                  type="text"
+                  value={concept}
+                  onChange={(e) => setConcept(e.target.value)}
+                  placeholder="Ej. Salario mensual"
+                  className="neobrutalism-input w-full"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="description" className="block text-sm font-medium mb-1">Descripción (opcional)</Label>
+                <input
+                  id="description"
+                  name="description"
+                  type="text"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Ej. Pago de la empresa XYZ"
+                  className="neobrutalism-input w-full"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="amount" className="block text-sm font-medium mb-1">Monto (COP)</Label>
+                <input
+                  id="amount"
+                  name="amount"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="Ej. 1500000"
+                  className="neobrutalism-input w-full"
+                  min="0"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="date" className="block text-sm font-medium mb-1">Fecha</Label>
+                <input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="neobrutalism-input w-full"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="categoryId" className="block text-sm font-medium mb-1">Categoría (opcional)</Label>
+                <select
+                  id="categoryId"
+                  name="categoryId"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value || undefined)}
+                  className="neobrutalism-selector w-full p-2"
+                >
+                  <option value="">Sin categoría</option>
+                  {sampleCategories
+                    .filter(cat =>
+                      type === 'income'
+                        ? cat.name.includes('Salario') || cat.name.includes('ingreso')
+                        : !cat.name.includes('Salario') && !cat.name.includes('ingreso')
+                    )
+                    .map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                </select>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end pt-4">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="neobrutalism-button mr-2"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="neobrutalism-button-primary"
-          >
-            <Plus size={18} className="mr-1 inline-block" />
-            {editTransaction ? 'Actualizar' : 'Añadir'}
-          </button>
-        </div>
-      </form>
-    </div>
+          <DialogFooter className="w-full pt-4 gap-2">
+            <Button
+              type="button"
+              onClick={handleCancel}
+              variant="reverse"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              variant='default'
+              className="ml-auto"
+            >
+              <Plus size={18} className="mr-1 inline-block" />
+              {editTransaction ? 'Actualizar' : 'Añadir'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent >
+    </Dialog >
   );
 };
 
 export default TransactionForm;
-

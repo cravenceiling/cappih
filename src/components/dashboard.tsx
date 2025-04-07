@@ -49,7 +49,7 @@ const Dashboard: React.FC<DashboardProps> = ({
         <div className="neobrutalism-card p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-medium text-gray-500">Balance</h3>
+              <h3 className="text-sm font-medium text-gray-500">Saldo</h3>
               <p className={`font-mono text-2xl font-bold ${balance >= 0 ? 'text-income' : 'text-expense'}`}>
                 {formatCurrency(balance)}
               </p>

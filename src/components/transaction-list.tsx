@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { Transaction as TransactionType } from '@/lib/types';
 import { Search } from 'lucide-react';
