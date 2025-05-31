@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Keyboard, LifeBuoy, LogOut, Mail, Menu, MessageSquare, Plus, PlusCircle, Settings, User, UserPlus, Users } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { Button } from './ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { redirect } from 'next/navigation';
 import { signOut } from './actions';
+import { Button } from './ui/button';
+import { LogOut, Menu, User } from 'lucide-react';
 
 interface NavbarProps {
   toggleSidebar?: () => void;
@@ -24,7 +24,7 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
   }
 
   return (
-    <header className="w-full border-b-2 border-black px-4 py-3">
+    <nav className="w-full border-b-4 border-black px-4 py-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {toggleSidebar && (
@@ -35,19 +35,21 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
           <span className="font-mono text-xl font-bold">Cappih</span>
         </div>
 
-        <div>
+        <div className='bg-secondary-background'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant={'neutral'}>Mi Cuenta</Button>
+              <Button variant="neutral">
+                <User size={24} />
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent className="w-56 bg-secondary-background">
+              {/*
               <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem>
                   <User />
                   <span>Perfil</span>
-                  <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings />
@@ -101,15 +103,15 @@ export default function Navbar({ toggleSidebar }: NavbarProps) {
                 <span>Soporte</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
+              */}
+              <DropdownMenuItem className='bg-secondary-background' onClick={handleSignOut}>
                 <LogOut />
                 <span>Cerrar Sesión</span>
-                <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
-    </header >
+    </nav >
   );
 };

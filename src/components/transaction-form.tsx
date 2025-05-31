@@ -1,11 +1,12 @@
 'use client';
 
+import { format } from "date-fns"
+
 import React, { useState, useEffect } from 'react';
 import { Transaction, TransactionType } from '@/lib/types';
-import { sampleCategories } from '@/lib/sampleData';
-import { Plus, X } from 'lucide-react';
+import { CalendarIcon, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { createTransactionAction } from '@/app/dashboard/actions';
+import { createTransactionAction, updateTransactionAction } from '@/app/dashboard/actions';
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,9 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
+import { Input } from "./ui/input";
 
 interface TransactionFormProps {
   editTransaction?: Transaction;
@@ -31,22 +35,24 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   onSubmitComplete,
 }) => {
   const { toast } = useToast();
+  const [id, setId] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
   const [concept, setConcept] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [categoryId, setCategoryId] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   // Populate form when editing
   useEffect(() => {
     if (editTransaction) {
+      setId(editTransaction.id);
       setType(editTransaction.type);
       setConcept(editTransaction.concept);
       setDescription(editTransaction.description || '');
       setAmount(editTransaction.amount.toString());
-      setCategoryId(editTransaction.categoryId);
-      setDate(new Date(editTransaction.date).toISOString().split('T')[0]);
+      setCategoryId(editTransaction.categoryId ?? '');
+      setDate(new Date());
     }
   }, [editTransaction]);
 
@@ -71,17 +77,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       return;
     }
 
-    const transaction: Omit<Transaction, 'id'> = {
+    const transaction = {
+      id,
       type,
       concept,
       description: description.trim() || undefined,
       amount: Number(amount),
-      date: new Date(date),
+      date: date ?? new Date(),
       categoryId: categoryId || undefined,
     };
 
-    const { error } = await createTransactionAction(transaction);
-    if (error) {
+    let actionError = null;
+
+    if (!editTransaction) {
+      const { error } = await createTransactionAction(transaction);
+      actionError = error;
+    } else {
+      const { error } = await updateTransactionAction(transaction);
+      actionError = error;
+    }
+
+    if (actionError) {
       toast({
         title: "Error",
         description: "No se pudo guardar la transacción",
@@ -90,9 +106,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       return;
     }
 
-    if (!editTransaction) {
-      resetForm();
-    }
+    resetForm();
 
     if (onSubmitComplete) {
       onSubmitComplete();
@@ -107,12 +121,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   const resetForm = () => {
+    setId('');
     setType('expense');
     setConcept('');
     setDescription('');
     setAmount('');
-    setCategoryId(undefined);
-    setDate(new Date().toISOString().split('T')[0]);
+    setCategoryId('');
+    setDate(new Date());
   };
 
   const handleCancel = () => {
@@ -120,7 +135,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   return (
-    <Dialog >
+    <Dialog open={open}>
       <DialogTrigger asChild>
         <Button onClick={() => setOpen(true)}>
           <Plus size={18} className="mr-1 inline-block" />
@@ -139,86 +154,79 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
           <div>
             <div className="flex gap-2 mb-4">
-              <button
+              <Button
                 type="button"
-                className={`neobrutalism-button flex-1 ${type === 'expense' ? 'bg-black text-white' : ''}`}
+                className={`flex-1 ${type === 'expense' ? 'bg-[#3F3917] text-white' : ''}`}
                 onClick={() => setType('expense')}
               >
                 Gasto
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={`neobrutalism-button flex-1 ${type === 'income' ? 'bg-black text-white' : ''}`}
+                className={`flex-1 ${type === 'income' ? 'bg-[#3F3917] text-white' : ''}`}
                 onClick={() => setType('income')}
               >
                 Ingreso
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-4">
               <div>
                 <Label htmlFor="concept" className="block text-sm font-medium mb-1">Concepto</Label>
-                <input
+                <Input
                   id="concept"
                   name="concept"
                   type="text"
                   value={concept}
                   onChange={(e) => setConcept(e.target.value)}
                   placeholder="Ej. Salario mensual"
-                  className="neobrutalism-input w-full"
+                  className="w-full"
                   required
                 />
               </div>
 
               <div>
                 <Label htmlFor="description" className="block text-sm font-medium mb-1">Descripción (opcional)</Label>
-                <input
+                <Input
                   id="description"
                   name="description"
                   type="text"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Ej. Pago de la empresa XYZ"
-                  className="neobrutalism-input w-full"
+                  className="w-full"
                 />
               </div>
 
               <div>
                 <Label htmlFor="amount" className="block text-sm font-medium mb-1">Monto (COP)</Label>
-                <input
+                <Input
                   id="amount"
                   name="amount"
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="Ej. 1500000"
-                  className="neobrutalism-input w-full"
+                  className="w-full"
                   min="0"
                   required
                 />
               </div>
 
-              <div>
+              <div className="w-full">
                 <Label htmlFor="date" className="block text-sm font-medium mb-1">Fecha</Label>
-                <input
-                  id="date"
-                  name="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="neobrutalism-input w-full"
-                  required
-                />
+                <DatePicker date={date} setDate={setDate} />
               </div>
 
               <div>
                 <Label htmlFor="categoryId" className="block text-sm font-medium mb-1">Categoría (opcional)</Label>
-                <select
+                {/*
+                <Select
                   id="categoryId"
                   name="categoryId"
                   value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value || undefined)}
-                  className="neobrutalism-selector w-full p-2"
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full p-2"
                 >
                   <option value="">Sin categoría</option>
                   {sampleCategories
@@ -233,6 +241,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                       </option>
                     ))}
                 </select>
+                */}
               </div>
             </div>
           </div>
@@ -259,5 +268,44 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     </Dialog >
   );
 };
+
+export const DatePicker = (
+  { date, setDate }: { date: Date | undefined, setDate: React.Dispatch<React.SetStateAction<Date | undefined>> }) => {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="noShadow"
+          className="w-[280px] justify-start text-left font-base"
+        >
+          <CalendarIcon />
+          {date ? format(date, "PPP") : <span>Selecciona una fecha</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-full border-0! p-0"
+        align="start"
+        sideOffset={4}
+        onInteractOutside={(e) => {
+          // Prevent closing when clicking inside the calendar
+          const target = e.target as HTMLElement;
+          if (target.closest('[data-rdp-cell]')) {
+            e.preventDefault();
+            return false;
+          }
+          return true;
+        }}
+      >
+        <Calendar
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          initialFocus
+          required
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default TransactionForm;

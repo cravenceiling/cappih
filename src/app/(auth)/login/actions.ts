@@ -1,24 +1,27 @@
-'use server'
+'use server';
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 
-export async function login(formData: FormData) {
+export async function login(prevState: { error: string } | null, formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
+  const creds = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
+  };
+
+  const { error } = await supabase.auth.signInWithPassword(creds);
+
+  if (error && error.code === "invalid_credentials") {
+    return { error: "invalid_credentials" };
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
-
   if (error) {
-    redirect('/error')
+    console.error("error in login: ", error);
+    return { error: "other" };
   }
 
   revalidatePath('/', 'layout')
@@ -28,8 +31,6 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,

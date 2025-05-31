@@ -7,9 +7,9 @@ export default async function Page() {
   const transactions = initialDashboardSummary.recentTransactions;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div>
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 mx-auto bg-background">
         <DashboardContainer
           initialTransactions={transactions}
           dashboardSummary={initialDashboardSummary}

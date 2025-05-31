@@ -22,7 +22,6 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<FilterType>('all');
-
   // Filter and sort transactions
   const filteredTransactions = transactions
     .filter(t => {
@@ -73,7 +72,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
             placeholder="Buscar transacciones..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="neobrutalism-input pl-10 w-full"
+            className="pl-10 w-full"
           />
         </div>
 
@@ -81,7 +80,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as FilterType)}
-            className="neobrutalism-selector px-3 py-2"
+            className="px-3 py-2"
           >
             <option value="all">Todas</option>
             <option value="income">Ingresos</option>
@@ -90,14 +89,14 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
           <button
             onClick={() => toggleSort('date')}
-            className={`neobrutalism-button ${sortBy === 'date' ? 'bg-black text-white' : ''}`}
+            className={`${sortBy === 'date' ? 'bg-black text-white' : ''}`}
           >
             Fecha {sortBy === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
           </button>
 
           <button
             onClick={() => toggleSort('amount')}
-            className={`neobrutalism-button ${sortBy === 'amount' ? 'bg-black text-white' : ''}`}
+            className={`${sortBy === 'amount' ? 'bg-black text-white' : ''}`}
           >
             Monto {sortBy === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}
           </button>
@@ -106,7 +105,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
       <div className="space-y-3">
         {filteredTransactions.length === 0 ? (
-          <div className="neobrutalism-card p-8 text-center">
+          <div className="p-8 text-center">
             <p>No se encontraron transacciones</p>
           </div>
         ) : (

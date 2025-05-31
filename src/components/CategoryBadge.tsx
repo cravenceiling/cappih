@@ -1,6 +1,5 @@
 import React from 'react';
 //import { Category } from '@/lib/types';
-import { getCategoryById } from '@/lib/sampleData';
 
 interface CategoryBadgeProps {
   categoryId?: string;
@@ -11,7 +10,7 @@ const CategoryBadge: React.FC<CategoryBadgeProps> = ({
   categoryId,
   className = '',
 }) => {
-  const category = categoryId ? getCategoryById(categoryId) : null;
+  const category = categoryId ? { name: '', color: '' } : null;//getCategoryById(categoryId) : null;
 
   if (!category) {
     return (

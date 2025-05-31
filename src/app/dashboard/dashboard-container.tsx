@@ -3,11 +3,11 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Transaction } from "@/lib/types";
-import { List, LayoutDashboard } from 'lucide-react';
 import TransactionForm from "@/components/transaction-form";
 import TransactionList from "@/components/transaction-list";
 import Dashboard from "@/components/dashboard";
-import { getDashboardSummary } from "./actions";
+import { deleteTransactionAction, getDashboardSummary } from "./actions";
+import { LayoutDashboard, List } from "lucide-react";
 
 interface DashboardContainerProps {
   initialTransactions: Transaction[];
@@ -19,31 +19,20 @@ export function DashboardContainer({
   dashboardSummary,
 }: DashboardContainerProps) {
   const { toast } = useToast();
-  const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const [activeView, setActiveView] = useState<'dashboard' | 'list'>('dashboard');
   const [open, setOpen] = useState(false);
+  
 
-  const handleUpdateTransaction = (updatedTransaction: Omit<Transaction, 'id'>) => {
-    if (!editingTransaction) return;
-
-    const updatedTransactions = transactions.map(t =>
-      t.id === editingTransaction.id
-        ? { ...updatedTransaction, id: editingTransaction.id }
-        : t
-    );
-
-    setTransactions(updatedTransactions);
-    setEditingTransaction(undefined);
-
-    toast({
-      title: "Transacción actualizada",
-      description: "La transacción ha sido actualizada exitosamente",
-    });
-  };
-
-  const handleDeleteTransaction = (id: string) => {
-    setTransactions(transactions.filter(t => t.id !== id));
+  const handleDeleteTransaction = async (id: string) => {
+    const { error } = await deleteTransactionAction(id);
+    if (error) {
+      toast({
+        title: "Error",
+        description: error,
+      });
+      return;
+    }
 
     toast({
       title: "Transacción eliminada",
@@ -53,27 +42,30 @@ export function DashboardContainer({
 
   const handleEditTransaction = (transaction: Transaction) => {
     setEditingTransaction(transaction);
+    setOpen(true);
   };
 
   return (
-    <div className="flex-1 container py-6 px-4 animate-slideUpAndFade">
-      <div className="flex justify-between items-center mb-8">
+    <div className="flex-1 max-w-5xl mx-auto py-8 px-2 md:px-8">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold mb-1">Dashboard</h1>
-          <p className="text-gray-500">Gestiona tus finanzas de manera sencilla</p>
+          <h1 className="text-3xl font-bold mb-1 text-main-foreground">Dashboard</h1>
+          <p className="text-foreground">Gestiona tus finanzas de manera sencilla</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex border-2 border-black">
+          <div className="flex border-2 border-border rounded-base overflow-hidden bg-secondary-background">
             <button
-              className={`p-2 ${activeView === 'dashboard' ? 'bg-black text-white' : 'bg-white'}`}
+              className={`p-2 transition-colors font-medium ${activeView === 'dashboard' ? 'bg-main text-main-foreground' : 'bg-secondary-background text-foreground'}`}
               onClick={() => setActiveView('dashboard')}
+              style={{ minWidth: 40 }}
             >
               <LayoutDashboard size={20} />
             </button>
             <button
-              className={`p-2 ${activeView === 'list' ? 'bg-black text-white' : 'bg-white'}`}
+              className={`p-2 transition-colors font-medium ${activeView === 'list' ? 'bg-main text-main-foreground' : 'bg-secondary-background text-foreground'}`}
               onClick={() => setActiveView('list')}
+              style={{ minWidth: 40 }}
             >
               <List size={20} />
             </button>
@@ -87,13 +79,11 @@ export function DashboardContainer({
         </div>
       </div>
 
-
-
       {activeView === 'dashboard' ? (
         <Dashboard
           summary={{
             ...dashboardSummary,
-            recentTransactions: transactions
+            recentTransactions: initialTransactions
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
               .slice(0, 5)
           }}
@@ -101,7 +91,7 @@ export function DashboardContainer({
         />
       ) : (
         <TransactionList
-          transactions={transactions}
+          transactions={initialTransactions}
           onEditTransaction={handleEditTransaction}
           onDeleteTransaction={handleDeleteTransaction}
         />
