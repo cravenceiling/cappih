@@ -8,6 +8,7 @@ export const createTransactionAction = async (transaction: Omit<Transaction, 'id
   const supabase = await createClient();
   const user_id = (await supabase.auth.getUser()).data.user?.id;
   const trx = {
+    user: user_id.
     user_id,
     amount: transaction.amount,
     transaction_type: transaction.type,
