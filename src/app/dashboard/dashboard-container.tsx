@@ -22,7 +22,6 @@ export function DashboardContainer({
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const [activeView, setActiveView] = useState<'dashboard' | 'list'>('dashboard');
   const [open, setOpen] = useState(false);
-  
 
   const handleDeleteTransaction = async (id: string) => {
     const { error } = await deleteTransactionAction(id);
@@ -72,9 +71,9 @@ export function DashboardContainer({
           </div>
 
           <TransactionForm
-            setOpen={setOpen}
-            open={open}
             editTransaction={editingTransaction}
+            open={open}
+            setOpen={setOpen}
           />
         </div>
       </div>

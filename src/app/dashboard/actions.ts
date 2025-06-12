@@ -11,7 +11,6 @@ export const createTransactionAction = async (transaction: Omit<Transaction, 'id
   if (!user_id) { return { error: 'No se pudo crear la transacción' }; }
 
   const trx = {
-    user: user_id,
     user_id,
     amount: transaction.amount,
     transaction_type: transaction.type,
@@ -21,7 +20,6 @@ export const createTransactionAction = async (transaction: Omit<Transaction, 'id
   };
 
   const res = await supabase.from('transactions').insert([trx]);
-  console.error('Error creating transaction: ', res);
 
   if (res.error) {
     return { error: 'Hubo un error creando la transacción, por favor intenta nuevamente.' };

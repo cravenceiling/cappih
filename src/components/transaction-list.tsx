@@ -22,13 +22,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [filterType, setFilterType] = useState<FilterType>('all');
-  // Filter and sort transactions
+
   const filteredTransactions = transactions
     .filter(t => {
-      // Apply type filter
       if (filterType !== 'all' && t.type !== filterType) return false;
 
-      // Apply search filter
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         return (
@@ -39,7 +37,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       return true;
     })
     .sort((a, b) => {
-      // Apply sorting
+
       if (sortBy === 'date') {
         return sortDirection === 'desc'
           ? new Date(b.date).getTime() - new Date(a.date).getTime()
