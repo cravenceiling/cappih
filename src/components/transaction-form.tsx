@@ -88,7 +88,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     if (editTransaction) {
       form.reset(editTransaction);
     }
-  }, [editTransaction]);
+  }, [editTransaction, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!values.concept.trim()) {
