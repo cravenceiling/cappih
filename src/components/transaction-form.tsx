@@ -2,8 +2,8 @@
 
 import { format } from "date-fns"
 
-import React, { useState, useEffect } from 'react';
-import { Transaction, TransactionType } from '@/lib/types';
+import React, { useEffect } from 'react';
+import { Transaction } from '@/lib/types';
 import { CalendarIcon, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { createTransactionAction, updateTransactionAction } from '@/app/dashboard/actions';
@@ -16,16 +16,22 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from './ui/button';
-import { Label } from './ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { Input } from "./ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "./ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
 
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
+
+export type Category = {
+  id: string;
+  name: string;
+  description: string;
+};
 
 interface TransactionFormProps {
   editTransaction?: Transaction;
@@ -41,15 +47,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   onSubmitComplete,
 }) => {
   const { toast } = useToast();
-  const [id, setId] = useState('');
-  const [type, setType] = useState<TransactionType>('expense');
-  const [concept, setConcept] = useState('');
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [date, setDate] = useState<Date | undefined>(new Date());
 
   const formSchema = z.object({
+    id: z.string(),
+    type: z.enum(['expense', 'income']),
     concept: z.string().min(5, {
       message: 'El concepto debe tener al menos 5 caracteres',
     }),
@@ -58,30 +59,39 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     }),
     description: z.string().optional(),
     date: z.date(),
+    categoryId: z.string().optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       date: new Date(),
+      type: 'expense',
+      id: '',
     },
   });
 
-  // Populate form when editing
+  const categories: Category[] = [
+    {
+      id: '-1',
+      name: 'Sin Categoría',
+      description: '',
+    },
+    {
+      id: '1',
+      name: 'Alimentos',
+      description: 'Productos alimenticios',
+    },
+  ];
+
   useEffect(() => {
     if (editTransaction) {
-      setId(editTransaction.id);
-      setType(editTransaction.type);
-      setConcept(editTransaction.concept);
-      setDescription(editTransaction.description || '');
-      setAmount(editTransaction.amount.toString());
-      setCategoryId(editTransaction.categoryId ?? '');
-      setDate(new Date());
+      form.reset(editTransaction);
     }
   }, [editTransaction]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!concept.trim()) {
+    if (!values.concept.trim()) {
       toast({
         title: "Error",
         description: "El concepto es obligatorio",
@@ -90,7 +100,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       return;
     }
 
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+    if (!values.amount || isNaN(Number(values.amount)) || Number(values.amount) <= 0) {
       toast({
         title: "Error",
         description: "Ingresa un monto válido",
@@ -100,13 +110,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     }
 
     const transaction = {
-      id,
-      type,
-      concept,
-      description: description.trim() || undefined,
-      amount: Number(amount),
-      date: date ?? new Date(),
-      categoryId: categoryId || undefined,
+      id: values.id,
+      type: values.type,
+      concept: values.concept,
+      description: values.description?.trim() || undefined,
+      amount: Number(values.amount),
+      date: values.date ?? new Date(),
+      categoryId: values.categoryId || undefined,
     };
 
     let actionError = null;
@@ -143,13 +153,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   const resetForm = () => {
-    setId('');
-    setType('expense');
-    setConcept('');
-    setDescription('');
-    setAmount('');
-    setCategoryId('');
-    setDate(new Date());
+    form.reset();
   };
 
   const handleCancel = () => {
@@ -174,121 +178,143 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-              <input type="hidden" name="type" value={type} />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          className={`flex-1 ${field.value === 'expense' ? 'font-bold bg-[#F2F2F2]' : ''}`}
+                          variant={field.value === 'expense' ? 'noShadow' : 'default'}
+                          onClick={() => field.onChange('expense')}
+                        >
+                          Gasto
+                        </Button>
+                        <Button
+                          className={`flex-1 ${field.value === 'income' ? 'font-bold bg-[#F2F2F2]' : ''}`}
+                          type="button"
+                          variant={field.value === 'income' ? 'noShadow' : 'default'}
+                          onClick={() => field.onChange('income')}
+                        >
+                          Ingreso
+                        </Button>
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <div className="flex gap-2 mb-4">
-                  <Button
-                    type="button"
-                    className={`flex-1 ${type === 'expense' ? 'font-bold bg-[#F2F2F2]' : ''}`}
-                    variant={type === 'expense' ? 'noShadow' : 'default'}
-                    onClick={() => setType('expense')}
-                  >
-                    Gasto
-                  </Button>
-                  <Button
-                    className={`flex-1 ${type === 'income' ? 'font-bold bg-[#F2F2F2]' : ''}`}
-                    type="button"
-                    variant={type === 'income' ? 'noShadow' : 'default'}
-                    onClick={() => setType('income')}
-                  >
-                    Ingreso
-                  </Button>
-                </div>
+              <FormField
+                control={form.control}
+                name="concept"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="concept">Concepto</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="concept"
+                        type="text"
+                        placeholder="Ej. Salario mensual"
+                        className="w-full"
+                        required
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="concept" className="block text-sm font-medium mb-1">Concepto</Label>
-                    <Input
-                      id="concept"
-                      name="concept"
-                      type="text"
-                      value={concept}
-                      onChange={(e) => setConcept(e.target.value)}
-                      placeholder="Ej. Salario mensual"
-                      className="w-full"
-                      required
-                    />
-                  </div>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="description">Descripción (opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="description"
+                        type="text"
+                        placeholder="Ej. Pago de la empresa XYZ"
+                        className="w-full"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <div>
-                    <Label htmlFor="description" className="block text-sm font-medium mb-1">Descripción (opcional)</Label>
-                    <Input
-                      id="description"
-                      name="description"
-                      type="text"
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      placeholder="Ej. Pago de la empresa XYZ"
-                      className="w-full"
-                    />
-                  </div>
 
-                  <div>
-                    <Label htmlFor="amount" className="block text-sm font-medium mb-1">Monto</Label>
-                    <Input
-                      id="amount"
-                      name="amount"
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="Ej. 1500000"
-                      className="w-full"
-                      min="0"
-                      required
-                    />
-                  </div>
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="amount">Monto</FormLabel>
+                    <FormControl>
+                      <Input
+                        id="amount"
+                        type="number"
+                        placeholder="Ej. 1500000"
+                        className="w-full"
+                        min="0"
+                        required
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fecha</FormLabel>
-                        <FormControl>
-                          <div>
-                            <DatePicker date={field.value} setDate={field.onChange} />
-                          </div>
-                        </FormControl>
-                      </FormItem>
-                    )} />
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fecha</FormLabel>
+                    <FormControl>
+                      <DatePicker date={field.value} setDate={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                  <div>
-                    {/*
-                  className="w-full">
-                  <Label htmlFor="date" className="block text-sm font-medium mb-1">Fecha</Label>
-                  <DatePicker date={date} setDate={setDate} />
-                <Label htmlFor="categoryId" className="block text-sm font-medium mb-1">Categoría (opcional)</Label>
-                <Select
-                  id="categoryId"
-                  name="categoryId"
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                  className="w-full p-2"
-                >
-                  <option value="">Sin categoría</option>
-                  {sampleCategories
-                    .filter(cat =>
-                      type === 'income'
-                        ? cat.name.includes('Salario') || cat.name.includes('ingreso')
-                        : !cat.name.includes('Salario') && !cat.name.includes('ingreso')
-                    )
-                    .map(category => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                </select>
-                */}
-                  </div>
-                </div>
-              </div>
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel htmlFor="conceptId">Categoría</FormLabel>
+                    <FormControl>
+                      <Select {...field}>
+                        <SelectTrigger className="w-full p-2">
+                          <SelectValue placeholder="Selecciona una categoría" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map(category => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter className="flex w-full pt-4 gap-8 justify-between flex-row">
                 <Button
                   type="button"
                   onClick={handleCancel}
-                  className="flex-1"
+                  className="flex-1 bg-secondary-background"
                   variant="reverse"
                 >
                   Cancelar
