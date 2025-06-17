@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { Transaction as TransactionType } from '@/lib/types';
 import { Search } from 'lucide-react';
 import Transaction from './transaction';
+import { Button } from './ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { Input } from './ui/input';
 
 interface TransactionListProps {
   transactions: TransactionType[];
@@ -65,7 +68,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <Search size={18} className="text-gray-500" />
           </div>
-          <input
+          <Input
             type="text"
             placeholder="Buscar transacciones..."
             value={searchTerm}
@@ -75,29 +78,35 @@ const TransactionList: React.FC<TransactionListProps> = ({
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value as FilterType)}
-            className="px-3 py-2"
-          >
-            <option value="all">Todas</option>
-            <option value="income">Ingresos</option>
-            <option value="expense">Gastos</option>
-          </select>
+          <div>
+            <Select
+              value={filterType}
+              onValueChange={(value: FilterType) => setFilterType(value)}
+            >
+              <SelectTrigger>
+                <SelectValue defaultValue='all' />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="income">Ingresos</SelectItem>
+                <SelectItem value="expense">Gastos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <button
+          <Button
             onClick={() => toggleSort('date')}
             className={`${sortBy === 'date' ? 'bg-black text-white' : ''}`}
           >
             Fecha {sortBy === 'date' && (sortDirection === 'asc' ? '↑' : '↓')}
-          </button>
+          </Button>
 
-          <button
+          <Button
             onClick={() => toggleSort('amount')}
             className={`${sortBy === 'amount' ? 'bg-black text-white' : ''}`}
           >
             Monto {sortBy === 'amount' && (sortDirection === 'asc' ? '↑' : '↓')}
-          </button>
+          </Button>
         </div>
       </div>
 

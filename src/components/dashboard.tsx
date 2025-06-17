@@ -8,11 +8,13 @@ import { formatCurrency } from '@/lib/utils';
 interface DashboardProps {
   summary: DashboardSummary;
   onEditTransaction?: (transaction: TransactionType) => void;
+  onDeleteTransaction?: (id: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
   summary,
   onEditTransaction,
+  onDeleteTransaction,
 }) => {
   const { totalIncome, totalExpense, balance, recentTransactions } = summary;
 
@@ -77,6 +79,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                   <Transaction
                     transaction={transaction}
                     onEdit={onEditTransaction}
+                    onDelete={onDeleteTransaction}
                   />
                 </div>
               ))

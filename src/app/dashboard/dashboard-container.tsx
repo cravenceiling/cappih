@@ -87,6 +87,7 @@ export function DashboardContainer({
               .slice(0, 5)
           }}
           onEditTransaction={handleEditTransaction}
+          onDeleteTransaction={handleDeleteTransaction}
         />
       ) : (
         <TransactionList

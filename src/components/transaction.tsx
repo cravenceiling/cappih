@@ -4,6 +4,7 @@ import CategoryBadge from './CategoryBadge';
 import { ArrowDownCircle, ArrowUpCircle, Edit, Trash } from 'lucide-react';
 import { Card } from './ui/card';
 import { formatCurrency } from '@/lib/utils';
+import { Button } from './ui/button';
 
 interface TransactionProps {
   transaction: TransactionType;
@@ -25,15 +26,17 @@ const Transaction: React.FC<TransactionProps> = ({
   });
 
   return (
-    <Card className="p-4 bg-secondary-background mb-4">
+    <Card className="bg-secondary-background p-4 mb-4">
       <div className="flex flex-col sm:flex-row justify-between">
-        <div className="flex items-start space-x-3">
-          <div className={`mt-1 ${type === 'income' ? 'text-income' : 'text-expense'}`}>
-            {type === 'income' ? <ArrowUpCircle size={24} /> : <ArrowDownCircle size={24} />}
+        <div className="flex flex-col items-start space-x-3">
+          <div className='flex flex-row items-center gap-2'>
+            {type === 'income' ? (
+              <ArrowUpCircle size={24} />) : (<ArrowDownCircle size={24} />
+            )}
+            <h3 className="font-semibold text-lg">{concept}</h3>
           </div>
 
-          <div>
-            <h3 className="font-semibold text-lg">{concept}</h3>
+          <div className='flex flex-col'>
             <div className="flex items-center mt-1 space-x-2">
               <span className="text-xs text-foreground">{formattedDate}</span>
               <CategoryBadge categoryId={categoryId} />
@@ -41,26 +44,30 @@ const Transaction: React.FC<TransactionProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col items-end justify-between mt-3 sm:mt-0">
+        <div className="flex flex-col items-end justify-between mt-3 sm:mt-0 mr-3">
           <span className={`font-mono font-bold text-lg ${type === 'income' ? 'text-income' : 'text-expense'}`}>
             {type === 'income' ? '+' : '-'}{formatCurrency(amount)}
           </span>
 
           <div className="flex space-x-2 mt-2">
             {onEdit && (
-              <button
+              <Button
+                variant={'neutral'}
                 onClick={() => onEdit(transaction)}
+                className='p-0 px-1'
               >
-                <Edit size={16} />
-              </button>
+                <Edit size={12} />
+              </Button>
             )}
 
             {onDelete && (
-              <button
+              <Button
+                variant={'neutral'}
                 onClick={() => onDelete(id)}
+                className='p-0 px-1'
               >
-                <Trash size={16} />
-              </button>
+                <Trash size={12} />
+              </Button>
             )}
           </div>
         </div>

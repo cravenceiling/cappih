@@ -1,7 +1,7 @@
 'use client';
 
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Transaction } from '@/lib/types';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -59,9 +59,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     categoryId: z.string().optional(),
   });
 
+  const trx: z.infer<typeof formSchema> | undefined = editTransaction;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: trx || {
       date: new Date(),
       type: 'expense',
       id: '',
@@ -72,6 +74,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   });
 
   const categories: Category[] = [];
+
+  useEffect(() => {
+    if (open) {
+      const safeTrx: z.infer<typeof formSchema> = trx
+        ? {
+          ...trx,
+          description: trx.description ?? '',
+          categoryId: trx.categoryId ?? '',
+        }
+        : {
+          date: new Date(),
+          type: 'expense',
+          id: '',
+          amount: 0,
+          description: '',
+          concept: '',
+          categoryId: '',
+        };
+      form.reset(safeTrx);
+    }
+  }, [trx, open, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!values.concept.trim()) {
@@ -97,10 +120,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       id: values.id,
       type: values.type,
       concept: values.concept,
-      description: values.description?.trim() || undefined,
+      description: values.description?.trim() || '',
       amount: Number(values.amount),
       date: values.date ?? new Date(),
-      categoryId: values.categoryId || undefined,
+      categoryId: values.categoryId || '',
     };
 
     let actionError = null;
@@ -129,6 +152,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       description: editTransaction ? "Transacción actualizada" : "Transacción añadida",
       className: 'bg-white text-black',
     });
+    setOpen(false);
   };
 
   const resetForm = () => {
@@ -137,9 +161,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       type: 'expense',
       concept: '',
       amount: 0,
-      description: '',
+      description: undefined,
       date: new Date(),
-      categoryId: '',
+      categoryId: undefined,
     });
   };
 
