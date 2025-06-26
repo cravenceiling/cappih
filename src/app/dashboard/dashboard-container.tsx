@@ -36,6 +36,7 @@ export function DashboardContainer({
     toast({
       title: "Transacción eliminada",
       description: "La transacción ha sido eliminada exitosamente",
+      className: 'bg-secondary-background text-foreground',
     });
   };
 
