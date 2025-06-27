@@ -1,20 +1,16 @@
 import React from 'react';
-import { Transaction as TransactionType, DashboardSummary } from '@/lib/types';
+import { DashboardSummary } from '@/lib/types';
 import { ArrowUpCircle, ArrowDownCircle, BarChart3, PiggyBank } from 'lucide-react';
-import Transaction from './transaction';
 import { Card } from './ui/card';
 import { formatCurrency } from '@/lib/utils';
+import TransactionCard from './transaction-card';
 
 interface DashboardProps {
   summary: DashboardSummary;
-  onEditTransaction?: (transaction: TransactionType) => void;
-  onDeleteTransaction?: (id: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({
   summary,
-  onEditTransaction,
-  onDeleteTransaction,
 }) => {
   const { totalIncome, totalExpense, balance, recentTransactions } = summary;
 
@@ -76,11 +72,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             ) : (
               recentTransactions.map(transaction => (
                 <div key={transaction.id} className="border-b-2 border-black last:border-b-0 pb-3 last:pb-0">
-                  <Transaction
-                    transaction={transaction}
-                    onEdit={onEditTransaction}
-                    onDelete={onDeleteTransaction}
-                  />
+                  <TransactionCard transaction={transaction} />
                 </div>
               ))
             )}

@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Transaction } from "@/lib/types";
-import TransactionForm from "@/components/transaction-form";
 import TransactionList from "@/components/transaction-list";
 import Dashboard from "@/components/dashboard";
 import { deleteTransactionAction, getDashboardSummary } from "./actions";
 import { LayoutDashboard, List } from "lucide-react";
+import NewTransactionForm from "@/components/new-transaction-btn";
+import { Transaction } from "@/types/transaction";
 
 interface DashboardContainerProps {
   initialTransactions: Transaction[];
@@ -18,11 +18,8 @@ export function DashboardContainer({
   initialTransactions,
   dashboardSummary,
 }: DashboardContainerProps) {
-  const { toast } = useToast();
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const [activeView, setActiveView] = useState<'dashboard' | 'list'>('dashboard');
-  const [open, setOpen] = useState(false);
-
+  const { toast } = useToast();
   const handleDeleteTransaction = async (id: string) => {
     const { error } = await deleteTransactionAction(id);
     if (error) {
@@ -39,11 +36,9 @@ export function DashboardContainer({
       className: 'bg-secondary-background text-foreground',
     });
   };
+  const [open, setOpen] = useState(false);
 
-  const handleEditTransaction = (transaction: Transaction) => {
-    setEditingTransaction(transaction);
-    setOpen(true);
-  };
+
 
   return (
     <div className="flex-1 max-w-5xl mx-auto py-8 px-2 md:px-8">
@@ -71,8 +66,7 @@ export function DashboardContainer({
             </button>
           </div>
 
-          <TransactionForm
-            editTransaction={editingTransaction}
+          <NewTransactionForm
             open={open}
             setOpen={setOpen}
           />
@@ -87,13 +81,10 @@ export function DashboardContainer({
               .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
               .slice(0, 5)
           }}
-          onEditTransaction={handleEditTransaction}
-          onDeleteTransaction={handleDeleteTransaction}
         />
       ) : (
         <TransactionList
           transactions={initialTransactions}
-          onEditTransaction={handleEditTransaction}
           onDeleteTransaction={handleDeleteTransaction}
         />
       )}

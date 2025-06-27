@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Transaction as TransactionType } from '@/lib/types';
 import { Search } from 'lucide-react';
-import Transaction from './transaction';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Input } from './ui/input';
+import { Transaction } from '@/types/transaction';
+import TransactionCard from './transaction-card';
 
 interface TransactionListProps {
-  transactions: TransactionType[];
-  onEditTransaction?: (transaction: TransactionType) => void;
+  transactions: Transaction[];
+  onEditTransaction?: (transaction: Transaction) => void;
   onDeleteTransaction?: (id: string) => void;
 }
 
@@ -117,11 +117,9 @@ const TransactionList: React.FC<TransactionListProps> = ({
           </div>
         ) : (
           filteredTransactions.map(transaction => (
-            <Transaction
+            <TransactionCard
               key={transaction.id}
               transaction={transaction}
-              onEdit={onEditTransaction}
-              onDelete={onDeleteTransaction}
             />
           ))
         )}
