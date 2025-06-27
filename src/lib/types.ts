@@ -1,3 +1,4 @@
+import { Transaction } from "@/types/transaction";
 
 export type DashboardSummary = {
   totalIncome: number;

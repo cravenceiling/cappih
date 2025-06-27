@@ -5,14 +5,12 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function Home() {
-  // Get the current user to determine authentication status
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   const isLoggedIn = !!user;
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Navbar */}
       <header className="w-full border-b-2 border-black px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -37,7 +35,6 @@ export default async function Home() {
         </div>
       </header>
 
-      {/* Hero Section */}
       <section className="py-20 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -53,9 +50,9 @@ export default async function Home() {
               </div>
             </div>
             <div className="relative h-[400px] border-2 border-black rounded-base shadow-shadow bg-yellow-100">
-              <img 
-                src="/placeholder-dashboard.png" 
-                alt="Vista previa del panel de Cappih" 
+              <img
+                src="/placeholder-dashboard.png"
+                alt="Vista previa del panel de Cappih"
                 className="object-contain p-4"
               />
             </div>
@@ -68,7 +65,7 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Simple pero Poderoso</h2>
           <p className="text-lg text-center mb-12 max-w-2xl mx-auto">Diseñado para ser minimalista y directo al grano con solo las funciones que realmente necesitas.</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card>
               <CardHeader>
@@ -99,7 +96,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Simplicity Section */}
       <section className="py-16 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -123,10 +119,10 @@ export default async function Home() {
             </div>
             <div className="order-1 md:order-2 rounded-base border-2 border-black shadow-shadow p-4 bg-blue-50">
               <div className="aspect-square relative">
-                <img 
-                  src="/placeholder-interface.png" 
-                  alt="Interfaz minimalista de Cappih" 
-                  className="object-contain" 
+                <img
+                  src="/placeholder-interface.png"
+                  alt="Interfaz minimalista de Cappih"
+                  className="object-contain"
                 />
               </div>
             </div>
@@ -134,7 +130,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 px-4 md:px-8 bg-secondary-background border-y-2 border-black">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Comienza a organizar tus finanzas hoy</h2>

@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { createTransactionAction } from '@/app/dashboard/actions';
@@ -15,19 +18,11 @@ import { Category } from '@/types/category';
 import { TransactionFormSchema, TransactionFormType, UseFormType } from '@/types/transaction-form';
 
 
-interface TransactionFormProps {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-};
-
-
-const NewTransactionForm: React.FC<TransactionFormProps> = ({
-  open,
-  setOpen,
-}) => {
+const NewTransactionForm: React.FC = ({ }) => {
   const categories: Category[] = [];
 
   const { toast } = useToast();
+  const [open, setOpen] = React.useState(false);
 
   const form: UseFormType = useForm({
     resolver: zodResolver(TransactionFormSchema),
@@ -74,11 +69,12 @@ const NewTransactionForm: React.FC<TransactionFormProps> = ({
 
   const handleClose = () => {
     setOpen(false);
+    form.reset();
   };
 
 
   return (
-    <Dialog open={open} onOpenChange={setOpen} modal={true} >
+    <Dialog open={open} onOpenChange={setOpen} modal={true}>
       <DialogTrigger asChild>
         <Button onClick={handleClose}>
           <Plus size={18} className="mr-1 inline-block" />

@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import TransactionList from "@/components/transaction-list";
 import Dashboard from "@/components/dashboard";
-import { deleteTransactionAction, getDashboardSummary } from "./actions";
+import { getDashboardSummary } from "./actions";
 import { LayoutDashboard, List } from "lucide-react";
 import NewTransactionForm from "@/components/new-transaction-btn";
 import { Transaction } from "@/types/transaction";
@@ -18,27 +17,9 @@ export function DashboardContainer({
   initialTransactions,
   dashboardSummary,
 }: DashboardContainerProps) {
+
   const [activeView, setActiveView] = useState<'dashboard' | 'list'>('dashboard');
-  const { toast } = useToast();
-  const handleDeleteTransaction = async (id: string) => {
-    const { error } = await deleteTransactionAction(id);
-    if (error) {
-      toast({
-        title: "Error",
-        description: error,
-      });
-      return;
-    }
-
-    toast({
-      title: "Transacción eliminada",
-      description: "La transacción ha sido eliminada exitosamente",
-      className: 'bg-secondary-background text-foreground',
-    });
-  };
   const [open, setOpen] = useState(false);
-
-
 
   return (
     <div className="flex-1 max-w-5xl mx-auto py-8 px-2 md:px-8">
@@ -85,7 +66,6 @@ export function DashboardContainer({
       ) : (
         <TransactionList
           transactions={initialTransactions}
-          onDeleteTransaction={handleDeleteTransaction}
         />
       )}
     </div>

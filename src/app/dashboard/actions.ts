@@ -1,7 +1,7 @@
 'use server';
 
 import { createClient } from "@/lib/supabase/server";
-import { Transaction } from "@/lib/types";
+import { Transaction } from "@/types/transaction";
 import { revalidatePath } from "next/cache";
 
 export const createTransactionAction = async (transaction: Omit<Transaction, 'id'>) => {

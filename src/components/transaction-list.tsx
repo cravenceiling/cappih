@@ -10,16 +10,12 @@ import TransactionCard from './transaction-card';
 
 interface TransactionListProps {
   transactions: Transaction[];
-  onEditTransaction?: (transaction: Transaction) => void;
-  onDeleteTransaction?: (id: string) => void;
 }
 
 type FilterType = 'all' | 'income' | 'expense';
 
 const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
-  onEditTransaction,
-  onDeleteTransaction,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
