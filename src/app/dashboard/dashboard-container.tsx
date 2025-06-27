@@ -19,7 +19,6 @@ export function DashboardContainer({
 }: DashboardContainerProps) {
 
   const [activeView, setActiveView] = useState<'dashboard' | 'list'>('dashboard');
-  const [open, setOpen] = useState(false);
 
   return (
     <div className="flex-1 max-w-5xl mx-auto py-8 px-2 md:px-8">
@@ -47,10 +46,7 @@ export function DashboardContainer({
             </button>
           </div>
 
-          <NewTransactionForm
-            open={open}
-            setOpen={setOpen}
-          />
+          <NewTransactionForm />
         </div>
       </div>
 
